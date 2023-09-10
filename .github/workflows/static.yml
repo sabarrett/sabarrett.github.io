@@ -36,7 +36,7 @@ jobs:
         with:
           version: 24.5
       - name: Build
-        run: emacs -Q --batch -l /work/publish-script.el
+        run: emacs -Q --batch -l publish-script.el
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
