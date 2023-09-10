@@ -1,0 +1,7 @@
+* This is very simple
+
+In fact, there's barely anything here.
+
+[[file:phys-week2.org][Go back from whence you came.]]
+
+
