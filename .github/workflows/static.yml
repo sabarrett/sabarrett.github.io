@@ -32,7 +32,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Emacs
-        uses: jcs090218/setup-emacs@v2
+        uses: jcs090218/setup-emacs@master
       - name: Build
         run: emacs -Q --batch -l /work/publish-script.el
       - name: Setup Pages
