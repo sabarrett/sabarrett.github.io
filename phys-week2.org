@@ -1,4 +1,5 @@
 #+STARTUP: latexpreview
+#+HTML_MATHJAX: path: https://orgmode.org/mathjax/MathJax.js
 #+TITLE: Particle Physics
 
 * Calculus refresher
