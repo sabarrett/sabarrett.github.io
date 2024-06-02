@@ -2,6 +2,8 @@
 #+HTML_MATHJAX: path: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 #+TITLE: Particle Physics
 
+#+RESULTS:
+
 * Calculus refresher
 
 _Def'n:_ *Derivative* is instantaneous change of one variable with respect
