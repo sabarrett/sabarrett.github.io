@@ -1,0 +1,1297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2024-06-02 Sun 11:19 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Networking a Game with Go</title>
+<meta name="generator" content="Org Mode" />
+<style>
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">Networking a Game with Go</h1>
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org7a1f163">Introduction and Motivation</a></li>
+<li><a href="#org61239cc">Socket Primer</a>
+<ul>
+<li><a href="#orge54cbda">Blocking 101</a></li>
+</ul>
+</li>
+<li><a href="#org4d1c9f2">Game Loops and Non-Blocking Sockets</a></li>
+<li><a href="#org7493319">Implementing this in go</a></li>
+<li><a href="#org4219a7e">Another Way: Threads (Goroutines)</a></li>
+<li><a href="#org66cfde7">The Channel Overreach</a></li>
+<li><a href="#org7cc73a0">Introduction to Multithreading: Mutexes</a></li>
+<li><a href="#orgab2ac20">Mutexes and LatestData</a></li>
+<li><a href="#orgb893ef4">Conclusion: A Light Touch Is Often Best</a></li>
+<li><a href="#orgeb14d9d">Appendix A: Table of Relevant System Calls</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org7a1f163" class="outline-2">
+<h2 id="org7a1f163">Introduction and Motivation</h2>
+<div class="outline-text-2" id="text-org7a1f163">
+<p>
+As a game developer and teacher, I've spent a fair amount of time
+messing around with low-level networking code in C++. I've gained
+enough experience with it that I've developed a personal house style,
+which tends to be more C-like than C++-like. When writing network
+code, you don't get the benefit of a lot of abstractions &#x2013; things
+like polymorphism and private class data tend to become libailities
+instead of advantages. You're back to basics, manipulating streams of
+bits and bytes.
+</p>
+
+<p>
+At the same time, I've been passively intrigued by Go, a programming
+language I briefly used professionally and that I've been eager to
+revisit. It dawned on me that writing a small networked game in Go
+would be a good opportunity to improve my familiarity with the
+language. Two features of Go in particular stuck out to me as useful
+for this exercise. One is the <code>syscalls</code> package, whose existence
+means I can write functionally the same program as I would in C, but
+with guaranteed memory safety and a stronger type system.
+</p>
+
+<p>
+The second relevant feature was Go's Reader and Writer interfaces,
+which are perfect for reading streams of bytes. When reading
+from/writing to sockets (or strings, or all kinds of things) in C <i>or</i>
+C++, I tend to do things like this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-c"><span style="font-weight: bold; text-decoration: underline;">char</span> <span style="font-weight: bold; font-style: italic;">buffer</span>[4096];
+<span style="font-weight: bold; text-decoration: underline;">size_t</span> <span style="font-weight: bold; font-style: italic;">write_head</span> = 0;
+write_head += serialize_object(obj1, &amp;buffer[write_head], <span style="font-weight: bold;">sizeof</span>(buffer) - write_head);
+write_head += serialize_object(obj2, &amp;buffer[write_head], <span style="font-weight: bold;">sizeof</span>(buffer) - write_head);
+write_head += serialize_object(obj3, &amp;buffer[write_head], <span style="font-weight: bold;">sizeof</span>(buffer) - write_head);
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... serialize more things ...</span>
+<span style="font-weight: bold;">send</span>(conn, buffer, write_head);
+</pre>
+</div>
+
+<p>
+This is a really common pattern in my code but note what's missing &#x2013;
+there's no way to expand the buffer, and the exact method of keeping
+track of the write head is a little ugly and overly explicit. Go's
+Readers and Writers take care of exactly that problem. For example,
+here's the same thing implemented in Go:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">buffer</span> <span style="font-weight: bold; text-decoration: underline;">bytes.Buffer</span>
+
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Each call to serialize_object calls buffer.Write(), expanding the</span>
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">buffer if necessary.</span>
+<span style="font-weight: bold;">serialize_object</span>(obj1, buffer)
+<span style="font-weight: bold;">serialize_object</span>(obj2, buffer)
+<span style="font-weight: bold;">serialize_object</span>(obj3, buffer)
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... serialize more things ...</span>
+<span style="font-weight: bold;">send</span>(conn, buffer)
+</pre>
+</div>
+
+
+<p>
+I wrote an extremely simple game-like thing (more of a technical proof of
+concept than an actual game), and even in that small
+exercise I learned I lot. This article serves to document some
+revelations I had &#x2013; as well as some missteps I made &#x2013; during the
+process.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org61239cc" class="outline-2">
+<h2 id="org61239cc">Socket Primer</h2>
+<div class="outline-text-2" id="text-org61239cc">
+<p>
+For those not acquainted, sockets are the things that let you write to
+and read from the network. They're a lot like files, except they
+operate on the network instead of the file system. A simple example
+would be:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-c"><span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">s</span> = make_socket_and_connect_to_address(<span style="font-style: italic;">"63.141.25.53:20000"</span>);
+<span style="font-weight: bold; text-decoration: underline;">char</span> <span style="font-weight: bold; font-style: italic;">buffer</span>[4096];
+<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">n</span> = recv(s, buffer, <span style="font-weight: bold;">sizeof</span>(buffer));
+<span style="font-weight: bold;">if</span> (n == 0) {
+  printf(<span style="font-style: italic;">"Connection closed.\n"</span>);
+} <span style="font-weight: bold;">else</span> {
+  printf(<span style="font-style: italic;">"Read %d bytes\n"</span>, n);
+}
+</pre>
+</div>
+
+<p>
+And then <code>buffer</code> will contain <code>n</code> bytes of data, which you then use
+however your program wants to use it.
+</p>
+
+<p>
+Notice the deliberate similarity to reading from a file:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-c"><span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">f</span> = open(<span style="font-style: italic;">"./my_file.txt"</span>);
+<span style="font-weight: bold; text-decoration: underline;">char</span> <span style="font-weight: bold; font-style: italic;">buffer</span>[4096];
+<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">n</span> = read(s, buffer, <span style="font-weight: bold;">sizeof</span>(buffer));
+<span style="font-weight: bold;">if</span> (n == 0) {
+  printf(<span style="font-style: italic;">"Reached end of file.\n"</span>);
+} <span style="font-weight: bold;">else</span> {
+  printf(<span style="font-style: italic;">"Read %d bytes\n"</span>, n);
+}
+</pre>
+</div>
+
+<p>
+It may seems surprising that both of these operations, which in
+priciple do such different things, can have such similar interfaces.
+In fact, they're more similar than they may appear &#x2013; both involve the
+program waiting for data to come in through some external means, and
+then continuing only when that data becomes present. This pattern is
+called <b>blocking</b>.
+</p>
+</div>
+
+<div id="outline-container-orge54cbda" class="outline-3">
+<h3 id="orge54cbda">Blocking 101</h3>
+<div class="outline-text-3" id="text-orge54cbda">
+<p>
+When you read from a file, a lot of things have to happen behind the
+scenes. The operating system communicates with the hard disk drive
+where your file's data is contained. That disk drive then spins the
+magnetic platter where the data lives, aligning it with the
+electro-magnetically sensitive read head, which then scans a block of
+data. It then sends a message back to the operating system that the
+data has been read. The operating system copies that data into your
+program's memory via the buffer you provided. Then, the function
+returns.
+</p>
+
+<p>
+This <i>feels</i> blazingly fast, and it often is &#x2013; for small files, the
+time this entire process takes is usually completely imperceptible.
+But as far as your CPU is concerned, it is <i>agonizingly</i> slow. The CPU
+can perform at least thousands, likely millions, of operations during
+that time, and instead it's doing&#x2026; nothing<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>. Just hanging
+around until the slow hard drive gets back to it.
+</p>
+
+<p>
+Just like with a file, when you call <code>recv()</code> on a socket, the
+operating system waits for the network device to come back with some
+data. However, networks are a little different &#x2013; unlike hard drives,
+which are reaching for existing files that have all the bytes sitting
+around, just <i>itching</i> for someone to read them, sockets will wait for
+another machine to send them information. Depending on the exact
+program, other machines may decide to wait a long time before sending
+data over. So, the time it takes for <code>recv()</code> to return depends
+entirely on the whims of another machine!
+</p>
+
+<p>
+I make this sound bad &#x2013; and we'll see below why it really <i>is</i> a
+problem for games &#x2013; but this is all to make programmers’
+lives easier and machines more efficient. If <code>recv()</code> <b>blocks</b> &#x2013; that
+is, it waits as long as necessary for data to come in before returning
+&#x2013; that means you can write programs that read something like this:
+</p>
+
+<ol class="org-ol">
+<li>Receive some data from the server.</li>
+<li>Interpret that data as HTML.</li>
+<li>Render the HTML document to the screen.</li>
+</ol>
+
+<p>
+instead of like this:
+</p>
+
+<ol class="org-ol">
+<li>Try to receive some data from the server.</li>
+<li>If the server hasn't sent any data yet, I guess hang around or
+something. Maybe play hopscotch or frisbee, if the weather's nice?</li>
+<li>Check back on if the server sent some data.</li>
+<li>If they still haven't, go back to step 2.</li>
+<li>If they have, interpret this data as HTML</li>
+<li>Render the HTML document to the screen.</li>
+</ol>
+
+<p>
+Not only is this unnecessarily complex for this task, it also opens
+the door for careless programmers to do something unproductive on step
+2 and fail to yield the CPU to other programs, where it could be doing
+useful work (see <sup><a id="fnr.1.100" class="footref" href="#fn.1" role="doc-backlink">1</a></sup> for more info on this). So making sure sockets
+<b>block</b> &#x2013; wait for data to come in &#x2013; instead of returning
+immediately is <i>usually</i> a good idea. But games are not usual pieces
+of software.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4d1c9f2" class="outline-2">
+<h2 id="org4d1c9f2">Game Loops and Non-Blocking Sockets</h2>
+<div class="outline-text-2" id="text-org4d1c9f2">
+<p>
+Games are unlike most other programs in that they keep <i>doing stuff</i>
+even if the user isn't pressing any buttons. If Mario stands still, an
+enemy will walk into him and the player will lose. Typically, games
+work by updating the world some small amount very frequently, taking
+the player's input into consideration at each update. Then, the game
+draws the world in a way that makes it clear to the player what's
+going on.
+</p>
+
+<p>
+In code, a game loop looks like this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-c"><span style="font-weight: bold;">while</span> (!quit) {
+  PollInput();
+  UpdateWorld();
+  RenderWorld();
+}
+</pre>
+</div>
+
+<p>
+Now let's add some network code. Oftentimes, player's computers act as
+clients connected to a server, and the server's simulation is
+considered the "real" or "authoritative" state of the game. So, every
+so often, we'll want our player's game to read from the socket that's
+connected to the server, so that the client can sync up with the
+server's state.
+</p>
+
+<p>
+Network info basically functions like input, it's just input from a
+another computer instead of from the user. So we'll add code to read
+from our socket in <code>PollInput()</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-c"><span style="font-weight: bold; text-decoration: underline;">void</span> <span style="font-weight: bold;">PollInput</span>() {
+  CheckControllerState();
+  <span style="font-weight: bold; text-decoration: underline;">char</span> <span style="font-weight: bold; font-style: italic;">buffer</span>[4096];
+  <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">n</span> = recv(serverConnection, buffer, <span style="font-weight: bold;">sizeof</span>(buffer));
+  ProcessServerPacket(buffer, n);
+</pre>
+</div>
+
+<p>
+But wait, this won't work &#x2013; we typically want our update loop to run
+around 60 times per second<sup><a id="fnr.2" class="footref" href="#fn.2" role="doc-backlink">2</a></sup>. <code>recv()</code>, however, will <a href="#orge54cbda">block</a> until
+data comes in. So our game will <i>completely stop</i> until another
+computer sends us network data, taking our ability to run this loop at
+least 60 times a second completely out of our hands.
+</p>
+
+<p>
+There's a simple solution to this. Sockets, like other files, can be
+configured to always return immediately, and to simply signal if they
+actually had any data or not. Once we set a socket to non-blocking
+mode<sup><a id="fnr.3" class="footref" href="#fn.3" role="doc-backlink">3</a></sup>, we can check the return value to see if it actually
+returned data or if none was available.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org7493319" class="outline-2">
+<h2 id="org7493319">Implementing this in go</h2>
+<div class="outline-text-2" id="text-org7493319">
+<p>
+Using Go to add nonblocking sockets is pretty straightforward. Here's
+a hypothetical <code>doNetRecv()</code> function, which can be safely called
+every iteration of our update loop without locking the whole thing up:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="font-weight: bold;">func</span> <span style="font-weight: bold;">doNetRecv</span>() {
+        <span style="font-weight: bold; font-style: italic;">buffer</span> := <span style="font-weight: bold;">make</span>([]<span style="font-weight: bold; text-decoration: underline;">byte</span>, 4096)
+        <span style="font-weight: bold; font-style: italic;">n</span>, <span style="font-weight: bold; font-style: italic;">err</span> := syscall.<span style="font-weight: bold;">Read</span>(connFd, buffer)
+        <span style="font-weight: bold;">if</span> err != <span style="font-weight: bold; text-decoration: underline;">nil</span> {
+                <span style="font-weight: bold;">if</span> err == syscall.EAGAIN || err == syscall.EWOULDBLOCK {
+                        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">No data available. That's ok, just move on.</span>
+                        <span style="font-weight: bold;">return</span>
+                } <span style="font-weight: bold;">else</span> {
+                        <span style="font-weight: bold;">panic</span>(fmt.<span style="font-weight: bold;">Errorf</span>(<span style="font-style: italic;">"error: %v"</span>, err))
+                }
+        }
+        <span style="font-weight: bold; font-style: italic;">packet</span> := buffer[:n]
+        <span style="font-weight: bold;">processPacket</span>(packet)
+}
+</pre>
+</div>
+
+<p>
+Note that we have to open our sockets using system calls ("syscalls")
+instead of using the <code>net</code> package to achieve this. For the curious, <a href="#orgeb14d9d">Appendix A</a> has a table showing the relevant system calls and
+their POSIX counterparts. The important thing to note is that our
+socket is stored as an <code>int</code> and is read from/written to using
+<code>syscall.Read()</code> and <code>syscall.Write()</code>, rather than the usual
+<code>io.Reader.Read()</code> interface.
+</p>
+
+<p>
+As you can see, testing whether a nonblocking socket received data is
+as simple as checking the err value &#x2013; if it's EAGAIN or EWOULDBLOCK
+(it can be either on different systems for historical reasons),
+there's no data ready for us. Other errors are legitimate errors and
+should be handled as such. If we didn't get an error, then we got data
+and can read it.
+</p>
+
+<p>
+One can use this function by simply calling it every frame. Usually,
+network sends and receives happen less frequently than once per frame
+(data doesn't usually come in quite that often), so we might call this
+20 times a second instead of 60. I found Go's <a href="https://pkg.go.dev/time#Ticker">ticker</a> class to be very
+helpful for this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="font-weight: bold;">select</span> {
+<span style="font-weight: bold;">case</span> &lt;-netSendTicker.C:
+        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">send data over the net, if enough time has elapsed.</span>
+        <span style="font-weight: bold;">doNetSend</span>()
+<span style="font-weight: bold;">case</span> &lt;-netRecvTicker.C:
+        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">try to receive data over the net, if enough time has</span>
+        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">elapsed.</span>
+        <span style="font-weight: bold;">doNetRecv</span>()
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">If it's not time to check anything, continue to the rest of the</span>
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">frame. Without this "default" condition, the select block will wait</span>
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">until one of the above two timers sends an event.</span>
+<span style="font-weight: bold;">default</span>:
+}
+
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Do our usual update loop</span>
+<span style="font-weight: bold;">update</span>()
+<span style="font-weight: bold;">render</span>()
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4219a7e" class="outline-2">
+<h2 id="org4219a7e">Another Way: Threads (Goroutines)</h2>
+<div class="outline-text-2" id="text-org4219a7e">
+<p>
+The other way to get around blocking operations (besides making them
+not block anymore) is to devote a thread to the operation. This is
+pretty easy with goroutines:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="font-weight: bold; font-style: italic;">conn</span> := <span style="font-weight: bold;">setUpConnection</span>()
+
+<span style="font-weight: bold;">go</span> <span style="font-weight: bold;">func</span>() {
+        <span style="font-weight: bold; font-style: italic;">n</span>, <span style="font-weight: bold; font-style: italic;">err</span> := conn.<span style="font-weight: bold;">Read</span>(buffer)
+        <span style="font-weight: bold;">if</span> err != <span style="font-weight: bold; text-decoration: underline;">nil</span> {
+                <span style="font-weight: bold;">panic</span>(err)
+        }
+        <span style="font-weight: bold; font-style: italic;">packet</span> := buffer[:n]
+        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... still need to do something with packet so the rest of</span>
+        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">our game can use it ...</span>
+}()
+
+<span style="font-weight: bold;">beginMainLoop</span>(conn)
+</pre>
+</div>
+
+<p>
+Boom, now we'll get data whenever it comes in, regardless of what our
+other threads are doing. The tricky part is coordinating how to use
+this data.
+</p>
+
+<p>
+Games are often inconvenient to multithread. There are a few
+principles of a basic game loop that combine to make this a reality:
+</p>
+
+<ol class="org-ol">
+<li>Each game object within the game is valid before and after calling
+<code>update()</code>, but is invalid in the middle of an <code>update()</code> call.</li>
+<li>Within each game object's <code>update()</code>, it may (and, in practice,
+often does) need to access and/or modify the state of an arbitrary
+number of other game objects.</li>
+<li>Therefore, in the general case, no two game objects can be updating
+at the same time.</li>
+</ol>
+
+<p>
+What this usually comes down to is updating each object in the world
+one at a time on a single thread. Adding a mutex to each individual
+object is a recipe for deadlock (as soon as two objects try to access
+each other, it's game over), and adding a mutex to the entire world is
+no better than doing the whole update on a single thread.
+</p>
+
+<p>
+Carefully considering how we communicate between our goroutines is
+paramount. If we try to have each thread lock and modify the world,
+we'll end up with a very complicated and difficult to predict
+multi-threaded program with the same throughput as a single-threaded
+program. Instead, we'll keep the main thread as the only one that's
+allowed to modify the world, and use communication with our
+subordinate threads to dictate what work gets done.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org66cfde7" class="outline-2">
+<h2 id="org66cfde7">The Channel Overreach</h2>
+<div class="outline-text-2" id="text-org66cfde7">
+<p>
+Go channels are a natural choice to facilitate communication between
+goroutines, and that's exactly what I started out doing:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Before entering main loop...</span>
+<span style="font-weight: bold; font-style: italic;">buffersCount</span> := 10
+<span style="font-weight: bold; font-style: italic;">bufferChan</span> := <span style="font-weight: bold;">make</span>(<span style="font-weight: bold;">chan</span> []<span style="font-weight: bold; text-decoration: underline;">byte</span>, buffersCount)
+<span style="font-weight: bold; font-style: italic;">inMsgChan</span> := <span style="font-weight: bold;">make</span>(<span style="font-weight: bold;">chan</span> []<span style="font-weight: bold; text-decoration: underline;">WorldMessage</span>, buffersCount)
+
+<span style="font-weight: bold;">for</span> <span style="font-weight: bold;">range</span> buffersCount {
+        bufferChan &lt;- <span style="font-weight: bold;">make</span>([]<span style="font-weight: bold; text-decoration: underline;">byte</span>, 4096)
+}
+
+<span style="font-weight: bold;">go</span> <span style="font-weight: bold;">func</span>() {
+        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Read buffers forever</span>
+        <span style="font-weight: bold;">for</span> <span style="font-weight: bold; font-style: italic;">buffer</span> := <span style="font-weight: bold;">range</span> bufferChan {
+                <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Expand buffer to its maximum capacity,</span>
+                <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">undoing the truncated done by buffer[:n].</span>
+                buffer = buffer[:<span style="font-weight: bold;">cap</span>(buffer)]
+                <span style="font-weight: bold; font-style: italic;">n</span>, <span style="font-weight: bold; font-style: italic;">err</span> := conn.<span style="font-weight: bold;">Read</span>(buffer)
+                <span style="font-weight: bold;">if</span> err != <span style="font-weight: bold; text-decoration: underline;">nil</span> {
+                        <span style="font-weight: bold;">panic</span>(err)
+                }
+                inMsgChan &lt;- buffer[:n]
+        }
+}
+
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... in main loop ...</span>
+<span style="font-weight: bold;">select</span> {
+<span style="font-weight: bold;">case</span> buffer&lt;-inMsgChan:
+        <span style="font-weight: bold;">readPacketIntoWorld</span>(world, buffer)
+        bufferChan &lt;- buffer
+<span style="font-weight: bold;">default</span>:
+}
+</pre>
+</div>
+
+<p>
+The idea is that we have a rotating cast of buffers. As long as there
+are buffers available in the queue, our read goroutine will grab one
+and use it to read incoming data. Then, after the main thread
+processes the data, the buffer goes back in the queue.
+</p>
+
+
+<div id="orgab51618" class="figure">
+<p><img src="./Goroutine_netcode.png" alt="Goroutine_netcode.png" width="75%" />
+</p>
+</div>
+
+<p>
+There are some benefits to this approach. For one, they use channels,
+which make communication between goroutines straightforward and easy.
+Another benefit is that they don't allocate any additional buffers &#x2013;
+we allocate an arbitrary number of buffers at the beginning and then
+cycle those back and forth. The perhaps strange-looking line, <code>buffer
+= buffer[:cap(buffer)]</code> expands the buffer to its original 4096-byte
+length, undoing the truncation done with the expression <code>buffer[:n]</code>.
+</p>
+
+<p>
+However, there are some major downsides as well. Something that's not
+ideal, but not fatal, is that we have to allocate enough space for
+however many buffers we want to be able to cycle right at the
+beginning. 10 buffers at 4kb per buffer means we're reserving 40kb,
+most of which will be unused at any given moment.
+</p>
+
+<p>
+Compounding this problem, however, is another, much worse one.
+Everything in our system works fine as long as the main thread keeps
+up with the read thread. That is, if the main thread is consuming
+buffers faster than the read thread is producing them, everything will
+work fine. But if the server is sending data faster than we're
+processing our update loops, the read thread will stall, waiting for
+the main thread to consume and free up the buffers it has written to.
+</p>
+
+
+<div id="orga68d48c" class="figure">
+<p><img src="./Goroutine_stalled_read.png" alt="Goroutine_stalled_read.png" width="75%" />
+</p>
+</div>
+
+<p>
+Finally, in this specific case, it's actually a huge waste of time to
+process every packet that comes in &#x2013; if multiple packets have come
+in, we only care about the latest one, because each packet contains
+the complete state of the world.
+</p>
+
+<p>
+Looking at this holistically, we can catch a whiff of the basic
+problem: we're using a queue when a single variable would suffice.
+From that, the clear solution is to forego channels entirely. Instead
+of using fancy (and convenient!) language features, we're going to get
+back to basics and use one of multithreadings primitive types.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org7cc73a0" class="outline-2">
+<h2 id="org7cc73a0">Introduction to Multithreading: Mutexes</h2>
+<div class="outline-text-2" id="text-org7cc73a0">
+<p>
+When multithreading, the most commonly used primitive synchronization
+object is the mutex (from "MUTual EXclusion", much like how pixel is
+from "PICture ELement"). These prevent a resource from being used by
+two different threads concurrently.
+</p>
+
+<p>
+As a quick example, take the following C++ code:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-c++"><span style="font-weight: bold; text-decoration: underline;">void</span> <span style="font-weight: bold;">add</span>(<span style="font-weight: bold; text-decoration: underline;">int</span>* <span style="font-weight: bold; font-style: italic;">p</span>, <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">delta</span>)
+{
+      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Load the value of n</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">n</span> = *p;
+      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Calculate the new value</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">sum</span> = n + delta;
+      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Store the new value</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      *p = sum;
+}
+</pre>
+</div>
+
+<p>
+Say <code>*p = 0</code> and two threads execute this function at once, one with
+<code>delta = 2</code> and one with <code>delta = 3</code>. Assume the correct behavior is
+that, after both threads complete, we want <code>*p = 5</code>. That might
+happen, if our threads play nice. But what could happen is this:
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">time</th>
+<th scope="col" class="org-left">Thread 1</th>
+<th scope="col" class="org-left">Thread 1 Comment</th>
+<th scope="col" class="org-left">Thread 2</th>
+<th scope="col" class="org-left">Thread 2 Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">0</td>
+<td class="org-left"><code>int n1 = *p</code></td>
+<td class="org-left">Set n=0</td>
+<td class="org-left"><code>int n2 = *p</code></td>
+<td class="org-left">Set n=0</td>
+</tr>
+
+<tr>
+<td class="org-right">1</td>
+<td class="org-left"><code>int sum1 = n1 + 2</code></td>
+<td class="org-left">Caluclate sum = 2</td>
+<td class="org-left"><code>int sum2 = n2 + 3</code></td>
+<td class="org-left">Calculate sum = 3</td>
+</tr>
+
+<tr>
+<td class="org-right">2</td>
+<td class="org-left"><code>*p = sum1</code></td>
+<td class="org-left">2 is stored in *p.</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-right">3</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left"><code>*p = sum2</code></td>
+<td class="org-left">3 is stored in *p</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Oops! Our computer just calculated 0 + 2 + 3 = 3. That's no good!
+</p>
+
+<p>
+For the sake of example, let's see what happens if we use a mutex:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-c++"><span style="font-weight: bold; text-decoration: underline;">std</span>::<span style="font-weight: bold; text-decoration: underline;">mutex</span> <span style="font-weight: bold; font-style: italic;">p_lock</span>;
+
+<span style="font-weight: bold; text-decoration: underline;">void</span> <span style="font-weight: bold;">add</span>(<span style="font-weight: bold; text-decoration: underline;">int</span>* <span style="font-weight: bold; font-style: italic;">p</span>, <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">delta</span>)
+{
+      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Lock the mutex. Threads that try to lock() a locked mutex will</span>
+<span style="font-weight: bold; font-style: italic;">         block until the mutex is freed.</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      p_lock.lock();
+      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Load the value of n</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">n</span> = *p;
+      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Calculate the new value</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">sum</span> = n + delta;
+      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Store the new value</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      *p = sum;
+      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Unlock the mutex, allowing other threads to operate on this</span>
+<span style="font-weight: bold; font-style: italic;">         data.</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      p_lock.unlock();
+}
+</pre>
+</div>
+
+<p>
+If the threads ran like they did in the pseudocode above, this would
+happen:
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">time</th>
+<th scope="col" class="org-left">Thread 1</th>
+<th scope="col" class="org-left">Thread 1 Comment</th>
+<th scope="col" class="org-left">Thread 2</th>
+<th scope="col" class="org-left">Thread 2 Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">0</td>
+<td class="org-left"><code>p_lock.lock()</code></td>
+<td class="org-left">Thread 1 acquires lock.</td>
+<td class="org-left"><code>p_lock.lock()</code></td>
+<td class="org-left">Can't acquire lock because thread 1 already has it. Thread 2 blocks.</td>
+</tr>
+
+<tr>
+<td class="org-right">1</td>
+<td class="org-left"><code>int n1 = *p</code></td>
+<td class="org-left">Set n = 0</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-right">2</td>
+<td class="org-left"><code>int sum1 = n1 + 2</code></td>
+<td class="org-left">Calculate sum = 2</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-right">3</td>
+<td class="org-left"><code>*p = sum1</code></td>
+<td class="org-left">Store *p = 2</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-right">4</td>
+<td class="org-left"><code>p_lock.unlock()</code></td>
+<td class="org-left">Release lock</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">Lock now acquired.</td>
+</tr>
+
+<tr>
+<td class="org-right">5</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left"><code>int n2 = *p</code></td>
+<td class="org-left">Set n = 2</td>
+</tr>
+
+<tr>
+<td class="org-right">6</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left"><code>int sum2 = n + 3</code></td>
+<td class="org-left">Set sum = 5</td>
+</tr>
+
+<tr>
+<td class="org-right">7</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left"><code>*p = sum2</code></td>
+<td class="org-left">Store *p = 5</td>
+</tr>
+
+<tr>
+<td class="org-right">8</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left"><code>p_lock.unlock()</code></td>
+<td class="org-left">Release lock</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+This prevents our threads from mangling data by accessing it
+concurrently. It also presents a downside, which is that threads which
+are waiting for mutexes to unlock do no work. If you're careless with
+mutexes, you can end up nullifying any potential performance gains by
+keeping your threads busy waiting for each other rather than doing
+work. This is exactly what happens in the example above, which runs
+no faster than a single-threaded program.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgab2ac20" class="outline-2">
+<h2 id="orgab2ac20">Mutexes and LatestData</h2>
+<div class="outline-text-2" id="text-orgab2ac20">
+<p>
+Now we have the tools we need to improve our program by moving away
+from channels. To recap, we have two threads that want to access the
+same data &#x2013; a message that has come in from the server &#x2013; and we used
+a straightforward but inefficient and unstable system to coordinate
+that communication. Since we only care about the latest data that came
+in, here's our new plan:
+</p>
+
+<ol class="org-ol">
+<li>Create a variable to hold latest message from the server</li>
+<li>Whenever we read data on our read thread, overwrite that variable</li>
+<li>When the main thread updates, and if the variable changed since the
+last time the main thread read it, use it to overwrite the world
+state.</li>
+</ol>
+
+<p>
+It's important that we only use the server data if it changed from the
+last time we used it to update the game world. Otherwise, we'll
+rewrite the world with stale data until the next server update comes
+in, preventing us from simulating more than a single frame ahead.
+</p>
+
+<p>
+Clearly, we don't want the read thread to write to the message
+variable while the main thread is reading, so we'll need a mutex to
+coordinate the threads. We'll also need a flag that tells the main
+thread something changed. The read thread will raise this flag when
+something occurs, and the main thread will clear the flag when it
+reads.
+</p>
+
+<p>
+Here's the solution I came up with:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="font-weight: bold;">type</span> <span style="font-weight: bold; text-decoration: underline;">LatestData</span> <span style="font-weight: bold;">struct</span> {
+        hasChanged <span style="font-weight: bold; text-decoration: underline;">bool</span>
+        data <span style="font-weight: bold; text-decoration: underline;">WorldMessage</span>
+        l <span style="font-weight: bold; text-decoration: underline;">sync.Mutex</span>
+}
+
+<span style="font-weight: bold;">func</span> (<span style="font-weight: bold; font-style: italic;">m</span> *<span style="font-weight: bold; text-decoration: underline;">LatestData</span>) <span style="font-weight: bold;">Store</span>(<span style="font-weight: bold; font-style: italic;">msg</span> *<span style="font-weight: bold; text-decoration: underline;">WorldMessage</span>) {
+        m.l.<span style="font-weight: bold;">Lock</span>()
+        <span style="font-weight: bold;">defer</span> m.l.<span style="font-weight: bold;">Unlock</span>()
+
+        m.data = *msg
+
+        m.hasChanged = <span style="font-weight: bold; text-decoration: underline;">true</span>
+}
+
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">If m has changed since the last Load, loads the current value of m</span>
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">into msg and returns true. Otherwise, does nothing and returns</span>
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">false.</span>
+<span style="font-weight: bold;">func</span> (<span style="font-weight: bold; font-style: italic;">m</span> *<span style="font-weight: bold; text-decoration: underline;">LatestData</span>) <span style="font-weight: bold;">Load</span>(<span style="font-weight: bold; font-style: italic;">msg</span> *<span style="font-weight: bold; text-decoration: underline;">WorldMessage</span>) <span style="font-weight: bold; text-decoration: underline;">bool</span> {
+        m.l.<span style="font-weight: bold;">Lock</span>()
+        <span style="font-weight: bold;">defer</span> m.l.<span style="font-weight: bold;">Unlock</span>()
+
+        <span style="font-weight: bold;">if</span> !m.hasChanged {
+                <span style="font-weight: bold;">return</span> <span style="font-weight: bold; text-decoration: underline;">false</span>
+        }
+
+        *msg = m.data
+        m.hasChanged = <span style="font-weight: bold; text-decoration: underline;">false</span>
+
+        <span style="font-weight: bold;">return</span> <span style="font-weight: bold; text-decoration: underline;">true</span>
+}
+</pre>
+</div>
+
+<p>
+Then we integrate it into our game like so:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Before entering main loop</span>
+<span style="font-weight: bold; font-style: italic;">latestMessage</span> := &amp;<span style="font-weight: bold; text-decoration: underline;">LatestData</span>{}
+
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Read thread</span>
+<span style="font-weight: bold;">go</span> <span style="font-weight: bold;">func</span>() {
+        <span style="font-weight: bold; font-style: italic;">buffer</span> := <span style="font-weight: bold;">make</span>([]<span style="font-weight: bold; text-decoration: underline;">byte</span>, 4096)
+        <span style="font-weight: bold;">for</span> {
+                <span style="font-weight: bold; font-style: italic;">n</span>, <span style="font-weight: bold; font-style: italic;">err</span> := conn.<span style="font-weight: bold;">Read</span>(buffer)
+                <span style="font-weight: bold;">if</span> err != <span style="font-weight: bold; text-decoration: underline;">nil</span> {
+                        <span style="font-weight: bold;">panic</span>(err)
+                }
+                <span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">message</span> <span style="font-weight: bold; text-decoration: underline;">MessageData</span>
+                message = <span style="font-weight: bold;">parseMessage</span>(buffer)
+                latestMessage.<span style="font-weight: bold;">Store</span>(message)
+        }
+}
+
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... in update loop ...</span>
+<span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">message</span> <span style="font-weight: bold; text-decoration: underline;">MessageData</span>
+<span style="font-weight: bold;">if</span> latestMessage.<span style="font-weight: bold;">Load</span>(&amp;message) {
+        <span style="font-weight: bold;">setWorldStateToMessageData</span>(message)
+}
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... rest of update loop</span>
+</pre>
+</div>
+
+<p>
+And there we go! Now our two threads can communicate independently of
+each other. The read thread will read data as fast as it comes in, and
+the main thread will use data only if it becomes relevant. Because our
+threads are sharing data, we have to be extra careful<sup><a id="fnr.4" class="footref" href="#fn.4" role="doc-backlink">4</a></sup>, which is why
+the Go documentation recommends using channels and communication<sup><a id="fnr.5" class="footref" href="#fn.5" role="doc-backlink">5</a></sup>
+instead of using mutexes directly.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgb893ef4" class="outline-2">
+<h2 id="orgb893ef4">Conclusion: A Light Touch Is Often Best</h2>
+<div class="outline-text-2" id="text-orgb893ef4">
+<p>
+Besides providing a (hopefully approachable) introduction to
+multithreading, game loops, and how they can interact, there's a more
+general lesson we can extract from this adventure: It's usually best
+to make small, incremental changes to a design than it is to jump to
+entirely new frameworks. The whole process started by noticing the
+value of Go's basic facilities and modifying a straightforward C
+program to improve that program's robustness. We further improved the
+program using goroutines and mutexes, but first we made a misstep in
+attempting to use the language's fanciest, sexiest features rather than
+using the right tool for the job.
+</p>
+
+<p>
+I'm reminded of a comment the venerable game programmer <a href="http://sevangelatos.com/john-carmack-on/">John Carmack
+once made</a> about programming in a functional style: "You should do it
+whenever it is convenient, and you should think hard about the
+decision when it isn’t convenient." I think this is a fantastic
+general philosophy &#x2013; when tools are useful, you should make them the
+default option. When they might cause trouble, think hard about it,
+and then decide. Note that he didn't recommend what many functional
+programming enthusiasts recommend: Switch immediately to the most
+sophisticated purely-functional language you can and use that to get
+everything done from now on. This straw-man caricature of FP
+enthusiasts is easy to recognize for the overreach that it is &#x2013; yet
+still, I regularly find myself tempted by this same philosophy.
+Whenever I happen upon a hammer, I try to reinvent the world around me
+to be full of nails. It can be hard to look at your problem and
+determine the minimal change necessary to solve it, but that skill is
+perhaps the most crucial of all for members of my profession.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgeb14d9d" class="outline-2">
+<h2 id="orgeb14d9d">Appendix A: Table of Relevant System Calls</h2>
+<div class="outline-text-2" id="text-orgeb14d9d">
+<p>
+Posix functions are written in the usual man page format &#x2013; socket(2)
+means "a function named socket, which is found on section 2 of the man
+pages." You can find descriptions of these syscalls by searching on
+<a href="https://man7.org/linux/man-pages/index.html">man7.org</a>, for example.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Go syscall</th>
+<th scope="col" class="org-left">Equivalent Posix function</th>
+<th scope="col" class="org-left">Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">syscall.Socket</td>
+<td class="org-left">socket(2)</td>
+<td class="org-left">Creates a socket</td>
+</tr>
+
+<tr>
+<td class="org-left">syscall.Connect</td>
+<td class="org-left">connect(2)</td>
+<td class="org-left">Connects a socket to a given address</td>
+</tr>
+
+<tr>
+<td class="org-left">syscall.Close</td>
+<td class="org-left">close(2)</td>
+<td class="org-left">Closes a file (including a socket)</td>
+</tr>
+
+<tr>
+<td class="org-left">syscall.SetNonblock</td>
+<td class="org-left">fcntl(2)</td>
+<td class="org-left">Sets a file as non-blocking (including a socket)</td>
+</tr>
+
+<tr>
+<td class="org-left">syscall.Bind</td>
+<td class="org-left">bind(2)</td>
+<td class="org-left">Associates a socket with a given address</td>
+</tr>
+
+<tr>
+<td class="org-left">syscall.Listen</td>
+<td class="org-left">listen(2)</td>
+<td class="org-left">Allows a socket to receive connections</td>
+</tr>
+
+<tr>
+<td class="org-left">syscall.Accept</td>
+<td class="org-left">accept(2)</td>
+<td class="org-left">Waits (blocks) for a corresponding connect call, then returns a new socket representing that connection</td>
+</tr>
+
+<tr>
+<td class="org-left">syscall.Read</td>
+<td class="org-left">read(2) / recv(2)</td>
+<td class="org-left">Reads data from a socket</td>
+</tr>
+
+<tr>
+<td class="org-left">syscall.Write</td>
+<td class="org-left">write(2) / send(2)</td>
+<td class="org-left">Writes data to a socket</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1" role="doc-backlink">1</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+Really, the CPU keeps working &#x2013; it's only this particular
+program that stops. The operating system has the CPU chew through some
+other program's task while waiting for the disk drive to respond. And
+if no other program needs to do work, then your CPU really <i>does</i> get
+to take a little nap and save on power consumption for a little bit!
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.2" class="footnum" href="#fnr.2" role="doc-backlink">2</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+60 frames per second that matches the refresh rate of most
+commercial monitors, so drawing less frequently than that means we're
+missing an opportunity to show the player what the game currently
+looks like. Plus, faster updates mean smaller increments for updating
+the game state, which leads to a more responsive game.
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.3" class="footnum" href="#fnr.3" role="doc-backlink">3</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+The exact way to set this mode is a little ugly to look at in
+C. The short answer is "use <code>fcntl()</code>". The long answer, while only 5
+lines of code, is visible on <a href="https://stackoverflow.com/a/1549344/2533993">stack overflow</a>, which is reproduced in a
+modified form below. Mercifully, Go provides the function
+<code>syscall.SetNonblock(fd int, blocking bool)</code> to legibly change this
+setting in a single line.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-c"><span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">flags</span> = fcntl(fd, F_GETFL, 0);
+flags = blocking ? (flags &amp; ~O_NONBLOCK) : (flags | O_NONBLOCK);
+<span style="font-weight: bold;">fcntl</span>(fd, F_SETFL, flags);
+</pre>
+</div></div></div>
+
+<div class="footdef"><sup><a id="fn.4" class="footnum" href="#fnr.4" role="doc-backlink">4</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+In fact, there's actually still an unaddressed issue here &#x2013; we
+didn't specify how we copy data into the <code>WorldMessage</code> struct. It's
+very important that we make sure <code>WorldMessage</code> doesn't share data with
+the read thread's <code>buffer</code> variable, or else we'll need an additional
+lock for <code>buffer</code>. For example:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="font-weight: bold;">type</span> <span style="font-weight: bold; text-decoration: underline;">MessageData</span> <span style="font-weight: bold;">struct</span> {
+        header <span style="font-weight: bold; text-decoration: underline;">int32</span>
+        body []<span style="font-weight: bold; text-decoration: underline;">byte</span>
+}
+
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Doing this makes body share the underlying array of buffer --</span>
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">writes to buffer will change the data read from body</span>
+messageData.body = buffer[headIndex:]
+
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Instead, if we do this, we can keep the data in buffer and in</span>
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">messageData independent of each other.</span>
+<span style="font-weight: bold;">copy</span>(messageData.body, buffer[headIndex:])
+</pre>
+</div></div></div>
+
+<div class="footdef"><sup><a id="fn.5" class="footnum" href="#fnr.5" role="doc-backlink">5</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+I'm not sure exactly what they mean by "communication", here.
+The full quote from the sync library is "Package <code>sync</code> provides basic
+synchronization primitives such as mutual exclusion locks. Other than
+the Once and WaitGroup types, most are intended for use by low-level
+library routines. <b>Higher-level synchronization is better done via
+channels and communication.</b>" (emphasis mine). Channels I understand,
+but what is communication besides the exact synchronization primitives
+described in the <code>sync</code> library? If anyone knows, please reach out to
+me!
+</p></div></div>
+
+
+</div>
+</div></div>
+<div id="postamble" class="status">
+<p class="date">Created: 2024-06-02 Sun 11:19</p>
+</div>
+</body>
+</html>

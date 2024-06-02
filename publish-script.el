@@ -1,3 +1,8 @@
+;; This script is almost there for github pages work -- the only
+;; problem is that htmlize doesn't produce colorful code blocks. I'm
+;; too sick of dealing with it now though, so for now you have to
+;; hand-publish before pushing.
+
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
