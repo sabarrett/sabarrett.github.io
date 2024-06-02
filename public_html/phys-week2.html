@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2024-06-02 Sun 11:19 -->
+<!-- 2024-06-02 Sun 11:29 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Particle Physics</title>
@@ -232,29 +232,29 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org67df53a">Calculus refresher</a>
+<li><a href="#org57db4a4">Calculus refresher</a>
 <ul>
-<li><a href="#org97b00cd">Notation</a></li>
+<li><a href="#org525d9e6">Notation</a></li>
 </ul>
 </li>
-<li><a href="#org4dbf22d">Calculus</a></li>
-<li><a href="#org643db1a">Particles</a></li>
-<li><a href="#orgbad5931">Newton's First Two Laws of Motion</a></li>
-<li><a href="#orgdfd61d6">Newton's First Law</a></li>
-<li><a href="#orgc791014">Newton's Second Law</a>
+<li><a href="#orgf96717d">Calculus</a></li>
+<li><a href="#org2da9667">Particles</a></li>
+<li><a href="#org93eab2d">Newton's First Two Laws of Motion</a></li>
+<li><a href="#org20d1d82">Newton's First Law</a></li>
+<li><a href="#org8edabc4">Newton's Second Law</a>
 <ul>
-<li><a href="#orgeef06c9">Gravity</a></li>
+<li><a href="#org2864b8a">Gravity</a></li>
 </ul>
 </li>
-<li><a href="#org817a77e">Game modifications</a></li>
-<li><a href="#orgec8a518">The Integrator</a></li>
+<li><a href="#org6b5b755">Game modifications</a></li>
+<li><a href="#org690ee80">The Integrator</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org67df53a" class="outline-2">
-<h2 id="org67df53a">Calculus refresher</h2>
-<div class="outline-text-2" id="text-org67df53a">
+<div id="outline-container-org57db4a4" class="outline-2">
+<h2 id="org57db4a4">Calculus refresher</h2>
+<div class="outline-text-2" id="text-org57db4a4">
 <p>
 <span class="underline">Def'n:</span> <b>Derivative</b> is instantaneous change of one variable with respect
 to another. This is formally described as
@@ -264,7 +264,7 @@ to another. This is formally described as
 \[\lim_{h \to 0}\frac{f(x+h)-f(x)}{h}\]
 </p>
 
-<div class="ADMONITION" id="orgf55640c">
+<div class="ADMONITION" id="org8141fa6">
 <p>
 This formal definition will not come up frequently in our class, but
 it is still useful to be familiar with.
@@ -273,9 +273,9 @@ it is still useful to be familiar with.
 </div>
 </div>
 
-<div id="outline-container-org97b00cd" class="outline-3">
-<h3 id="org97b00cd">Notation</h3>
-<div class="outline-text-3" id="text-org97b00cd">
+<div id="outline-container-org525d9e6" class="outline-3">
+<h3 id="org525d9e6">Notation</h3>
+<div class="outline-text-3" id="text-org525d9e6">
 <p>
 The derivative of the function y with respect to the variable x is
 written as either \(y'\) or \(\frac{dy}{dx}\)
@@ -299,9 +299,9 @@ Both mean "the derivative of \(x^2-3\) is \(2x-3\)".
 </div>
 </div>
 
-<div id="outline-container-org4dbf22d" class="outline-2">
-<h2 id="org4dbf22d">Calculus</h2>
-<div class="outline-text-2" id="text-org4dbf22d">
+<div id="outline-container-orgf96717d" class="outline-2">
+<h2 id="orgf96717d">Calculus</h2>
+<div class="outline-text-2" id="text-orgf96717d">
 <p>
 Position is an object's location in space, represented as a vector of
 2 or 3 dimensions (for 2D/3D respectively).
@@ -359,9 +359,9 @@ position. A derivation of this fact is available <a href="https://phys.libretext
 </div>
 </div>
 
-<div id="outline-container-org643db1a" class="outline-2">
-<h2 id="org643db1a">Particles</h2>
-<div class="outline-text-2" id="text-org643db1a">
+<div id="outline-container-org2da9667" class="outline-2">
+<h2 id="org2da9667">Particles</h2>
+<div class="outline-text-2" id="text-org2da9667">
 <p>
 A particle is simply a single object.
 </p>
@@ -381,9 +381,9 @@ We will further build on particles throughout this course.
 </div>
 </div>
 
-<div id="outline-container-orgbad5931" class="outline-2">
-<h2 id="orgbad5931">Newton's First Two Laws of Motion</h2>
-<div class="outline-text-2" id="text-orgbad5931">
+<div id="outline-container-org93eab2d" class="outline-2">
+<h2 id="org93eab2d">Newton's First Two Laws of Motion</h2>
+<div class="outline-text-2" id="text-org93eab2d">
 <ol class="org-ol">
 <li><p>
 Object maintains is velocity unless a force acts upon it
@@ -408,9 +408,9 @@ represented in our Particle class.
 </div>
 </div>
 
-<div id="outline-container-orgdfd61d6" class="outline-2">
-<h2 id="orgdfd61d6">Newton's First Law</h2>
-<div class="outline-text-2" id="text-orgdfd61d6">
+<div id="outline-container-org20d1d82" class="outline-2">
+<h2 id="org20d1d82">Newton's First Law</h2>
+<div class="outline-text-2" id="text-org20d1d82">
 <p>
 In essence, velocity does not (usually) change directly. Instead, it
 is changed by acceleration.
@@ -431,9 +431,9 @@ add up to visibly significant changes in velocity.
 </div>
 </div>
 
-<div id="outline-container-orgc791014" class="outline-2">
-<h2 id="orgc791014">Newton's Second Law</h2>
-<div class="outline-text-2" id="text-orgc791014">
+<div id="outline-container-org8edabc4" class="outline-2">
+<h2 id="org8edabc4">Newton's Second Law</h2>
+<div class="outline-text-2" id="text-org8edabc4">
 <p>
 This is usually succinctly written as \(\Sigma F=ma\). That is, the sum
 of the forces operating on a particle is equal to its mass times its
@@ -452,9 +452,9 @@ want!
 </p>
 </div>
 
-<div id="outline-container-orgeef06c9" class="outline-3">
-<h3 id="orgeef06c9">Gravity</h3>
-<div class="outline-text-3" id="text-orgeef06c9">
+<div id="outline-container-org2864b8a" class="outline-3">
+<h3 id="org2864b8a">Gravity</h3>
+<div class="outline-text-3" id="text-org2864b8a">
 <p>
 Gravity is a fundamental force of the universe. All objects attract
 each other proportional to their masses and the gravitational
@@ -510,9 +510,9 @@ gravity, we end up with this equation:
 </div>
 </div>
 
-<div id="outline-container-org817a77e" class="outline-2">
-<h2 id="org817a77e">Game modifications</h2>
-<div class="outline-text-2" id="text-org817a77e">
+<div id="outline-container-org6b5b755" class="outline-2">
+<h2 id="org6b5b755">Game modifications</h2>
+<div class="outline-text-2" id="text-org6b5b755">
 <p>
 We will need to add two more variables to our particle class to
 reflect these laws:
@@ -543,9 +543,9 @@ class:
 </div>
 </div>
 
-<div id="outline-container-orgec8a518" class="outline-2">
-<h2 id="orgec8a518">The Integrator</h2>
-<div class="outline-text-2" id="text-orgec8a518">
+<div id="outline-container-org690ee80" class="outline-2">
+<h2 id="org690ee80">The Integrator</h2>
+<div class="outline-text-2" id="text-org690ee80">
 <ul class="org-ul">
 <li>Modify position</li>
 <li>Calculate acceleration from forces (just gravity for now)</li>
@@ -570,7 +570,7 @@ computer (division, square roots, raising to non-integer powers).
 </div>
 </div></div>
 <div id="postamble" class="status">
-<p class="date">Created: 2024-06-02 Sun 11:19</p>
+<p class="date">Created: 2024-06-02 Sun 11:29</p>
 </div>
 </body>
 </html>

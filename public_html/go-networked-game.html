@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2024-06-02 Sun 11:19 -->
+<!-- 2024-06-02 Sun 11:29 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Networking a Game with Go</title>
@@ -200,27 +200,27 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org7a1f163">Introduction and Motivation</a></li>
-<li><a href="#org61239cc">Socket Primer</a>
+<li><a href="#orga80269f">Introduction and Motivation</a></li>
+<li><a href="#org154302a">Socket Primer</a>
 <ul>
-<li><a href="#orge54cbda">Blocking 101</a></li>
+<li><a href="#orgfc5adbb">Blocking 101</a></li>
 </ul>
 </li>
-<li><a href="#org4d1c9f2">Game Loops and Non-Blocking Sockets</a></li>
-<li><a href="#org7493319">Implementing this in go</a></li>
-<li><a href="#org4219a7e">Another Way: Threads (Goroutines)</a></li>
-<li><a href="#org66cfde7">The Channel Overreach</a></li>
-<li><a href="#org7cc73a0">Introduction to Multithreading: Mutexes</a></li>
-<li><a href="#orgab2ac20">Mutexes and LatestData</a></li>
-<li><a href="#orgb893ef4">Conclusion: A Light Touch Is Often Best</a></li>
-<li><a href="#orgeb14d9d">Appendix A: Table of Relevant System Calls</a></li>
+<li><a href="#org55de788">Game Loops and Non-Blocking Sockets</a></li>
+<li><a href="#org39831d2">Implementing this in go</a></li>
+<li><a href="#orge7c0141">Another Way: Threads (Goroutines)</a></li>
+<li><a href="#org0127971">The Channel Overreach</a></li>
+<li><a href="#orgba921b1">Introduction to Multithreading: Mutexes</a></li>
+<li><a href="#org2f46a39">Mutexes and LatestData</a></li>
+<li><a href="#orgabbe79d">Conclusion: A Light Touch Is Often Best</a></li>
+<li><a href="#org69fba76">Appendix A: Table of Relevant System Calls</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org7a1f163" class="outline-2">
-<h2 id="org7a1f163">Introduction and Motivation</h2>
-<div class="outline-text-2" id="text-org7a1f163">
+<div id="outline-container-orga80269f" class="outline-2">
+<h2 id="orga80269f">Introduction and Motivation</h2>
+<div class="outline-text-2" id="text-orga80269f">
 <p>
 As a game developer and teacher, I've spent a fair amount of time
 messing around with low-level networking code in C++. I've gained
@@ -251,13 +251,13 @@ C++, I tend to do things like this:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-c"><span style="font-weight: bold; text-decoration: underline;">char</span> <span style="font-weight: bold; font-style: italic;">buffer</span>[4096];
-<span style="font-weight: bold; text-decoration: underline;">size_t</span> <span style="font-weight: bold; font-style: italic;">write_head</span> = 0;
-write_head += serialize_object(obj1, &amp;buffer[write_head], <span style="font-weight: bold;">sizeof</span>(buffer) - write_head);
-write_head += serialize_object(obj2, &amp;buffer[write_head], <span style="font-weight: bold;">sizeof</span>(buffer) - write_head);
-write_head += serialize_object(obj3, &amp;buffer[write_head], <span style="font-weight: bold;">sizeof</span>(buffer) - write_head);
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... serialize more things ...</span>
-<span style="font-weight: bold;">send</span>(conn, buffer, write_head);
+<pre class="src src-c"><span style="color: #228b22;">char</span> <span style="color: #a0522d;">buffer</span>[4096];
+<span style="color: #228b22;">size_t</span> <span style="color: #a0522d;">write_head</span> = 0;
+write_head += serialize_object(obj1, &amp;buffer[write_head], <span style="color: #a020f0;">sizeof</span>(buffer) - write_head);
+write_head += serialize_object(obj2, &amp;buffer[write_head], <span style="color: #a020f0;">sizeof</span>(buffer) - write_head);
+write_head += serialize_object(obj3, &amp;buffer[write_head], <span style="color: #a020f0;">sizeof</span>(buffer) - write_head);
+<span style="color: #b22222;">// </span><span style="color: #b22222;">... serialize more things ...</span>
+<span style="color: #0000ff;">send</span>(conn, buffer, write_head);
 </pre>
 </div>
 
@@ -270,15 +270,15 @@ here's the same thing implemented in Go:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-go"><span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">buffer</span> <span style="font-weight: bold; text-decoration: underline;">bytes.Buffer</span>
+<pre class="src src-go"><span style="color: #a020f0;">var</span> <span style="color: #a0522d;">buffer</span> <span style="color: #228b22;">bytes.Buffer</span>
 
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Each call to serialize_object calls buffer.Write(), expanding the</span>
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">buffer if necessary.</span>
-<span style="font-weight: bold;">serialize_object</span>(obj1, buffer)
-<span style="font-weight: bold;">serialize_object</span>(obj2, buffer)
-<span style="font-weight: bold;">serialize_object</span>(obj3, buffer)
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... serialize more things ...</span>
-<span style="font-weight: bold;">send</span>(conn, buffer)
+<span style="color: #b22222;">// </span><span style="color: #b22222;">Each call to serialize_object calls buffer.Write(), expanding the</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">buffer if necessary.</span>
+<span style="color: #0000ff;">serialize_object</span>(obj1, buffer)
+<span style="color: #0000ff;">serialize_object</span>(obj2, buffer)
+<span style="color: #0000ff;">serialize_object</span>(obj3, buffer)
+<span style="color: #b22222;">// </span><span style="color: #b22222;">... serialize more things ...</span>
+<span style="color: #0000ff;">send</span>(conn, buffer)
 </pre>
 </div>
 
@@ -293,9 +293,9 @@ process.
 </div>
 </div>
 
-<div id="outline-container-org61239cc" class="outline-2">
-<h2 id="org61239cc">Socket Primer</h2>
-<div class="outline-text-2" id="text-org61239cc">
+<div id="outline-container-org154302a" class="outline-2">
+<h2 id="org154302a">Socket Primer</h2>
+<div class="outline-text-2" id="text-org154302a">
 <p>
 For those not acquainted, sockets are the things that let you write to
 and read from the network. They're a lot like files, except they
@@ -304,13 +304,13 @@ would be:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-c"><span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">s</span> = make_socket_and_connect_to_address(<span style="font-style: italic;">"63.141.25.53:20000"</span>);
-<span style="font-weight: bold; text-decoration: underline;">char</span> <span style="font-weight: bold; font-style: italic;">buffer</span>[4096];
-<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">n</span> = recv(s, buffer, <span style="font-weight: bold;">sizeof</span>(buffer));
-<span style="font-weight: bold;">if</span> (n == 0) {
-  printf(<span style="font-style: italic;">"Connection closed.\n"</span>);
-} <span style="font-weight: bold;">else</span> {
-  printf(<span style="font-style: italic;">"Read %d bytes\n"</span>, n);
+<pre class="src src-c"><span style="color: #228b22;">int</span> <span style="color: #a0522d;">s</span> = make_socket_and_connect_to_address(<span style="color: #8b2252;">"63.141.25.53:20000"</span>);
+<span style="color: #228b22;">char</span> <span style="color: #a0522d;">buffer</span>[4096];
+<span style="color: #228b22;">int</span> <span style="color: #a0522d;">n</span> = recv(s, buffer, <span style="color: #a020f0;">sizeof</span>(buffer));
+<span style="color: #a020f0;">if</span> (n == 0) {
+  printf(<span style="color: #8b2252;">"Connection closed.\n"</span>);
+} <span style="color: #a020f0;">else</span> {
+  printf(<span style="color: #8b2252;">"Read %d bytes\n"</span>, n);
 }
 </pre>
 </div>
@@ -325,13 +325,13 @@ Notice the deliberate similarity to reading from a file:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-c"><span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">f</span> = open(<span style="font-style: italic;">"./my_file.txt"</span>);
-<span style="font-weight: bold; text-decoration: underline;">char</span> <span style="font-weight: bold; font-style: italic;">buffer</span>[4096];
-<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">n</span> = read(s, buffer, <span style="font-weight: bold;">sizeof</span>(buffer));
-<span style="font-weight: bold;">if</span> (n == 0) {
-  printf(<span style="font-style: italic;">"Reached end of file.\n"</span>);
-} <span style="font-weight: bold;">else</span> {
-  printf(<span style="font-style: italic;">"Read %d bytes\n"</span>, n);
+<pre class="src src-c"><span style="color: #228b22;">int</span> <span style="color: #a0522d;">f</span> = open(<span style="color: #8b2252;">"./my_file.txt"</span>);
+<span style="color: #228b22;">char</span> <span style="color: #a0522d;">buffer</span>[4096];
+<span style="color: #228b22;">int</span> <span style="color: #a0522d;">n</span> = read(s, buffer, <span style="color: #a020f0;">sizeof</span>(buffer));
+<span style="color: #a020f0;">if</span> (n == 0) {
+  printf(<span style="color: #8b2252;">"Reached end of file.\n"</span>);
+} <span style="color: #a020f0;">else</span> {
+  printf(<span style="color: #8b2252;">"Read %d bytes\n"</span>, n);
 }
 </pre>
 </div>
@@ -346,9 +346,9 @@ called <b>blocking</b>.
 </p>
 </div>
 
-<div id="outline-container-orge54cbda" class="outline-3">
-<h3 id="orge54cbda">Blocking 101</h3>
-<div class="outline-text-3" id="text-orge54cbda">
+<div id="outline-container-orgfc5adbb" class="outline-3">
+<h3 id="orgfc5adbb">Blocking 101</h3>
+<div class="outline-text-3" id="text-orgfc5adbb">
 <p>
 When you read from a file, a lot of things have to happen behind the
 scenes. The operating system communicates with the hard disk drive
@@ -423,9 +423,9 @@ of software.
 </div>
 </div>
 
-<div id="outline-container-org4d1c9f2" class="outline-2">
-<h2 id="org4d1c9f2">Game Loops and Non-Blocking Sockets</h2>
-<div class="outline-text-2" id="text-org4d1c9f2">
+<div id="outline-container-org55de788" class="outline-2">
+<h2 id="org55de788">Game Loops and Non-Blocking Sockets</h2>
+<div class="outline-text-2" id="text-org55de788">
 <p>
 Games are unlike most other programs in that they keep <i>doing stuff</i>
 even if the user isn't pressing any buttons. If Mario stands still, an
@@ -441,7 +441,7 @@ In code, a game loop looks like this:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-c"><span style="font-weight: bold;">while</span> (!quit) {
+<pre class="src src-c"><span style="color: #a020f0;">while</span> (!quit) {
   PollInput();
   UpdateWorld();
   RenderWorld();
@@ -465,17 +465,17 @@ from our socket in <code>PollInput()</code>:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-c"><span style="font-weight: bold; text-decoration: underline;">void</span> <span style="font-weight: bold;">PollInput</span>() {
+<pre class="src src-c"><span style="color: #228b22;">void</span> <span style="color: #0000ff;">PollInput</span>() {
   CheckControllerState();
-  <span style="font-weight: bold; text-decoration: underline;">char</span> <span style="font-weight: bold; font-style: italic;">buffer</span>[4096];
-  <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">n</span> = recv(serverConnection, buffer, <span style="font-weight: bold;">sizeof</span>(buffer));
+  <span style="color: #228b22;">char</span> <span style="color: #a0522d;">buffer</span>[4096];
+  <span style="color: #228b22;">int</span> <span style="color: #a0522d;">n</span> = recv(serverConnection, buffer, <span style="color: #a020f0;">sizeof</span>(buffer));
   ProcessServerPacket(buffer, n);
 </pre>
 </div>
 
 <p>
 But wait, this won't work &#x2013; we typically want our update loop to run
-around 60 times per second<sup><a id="fnr.2" class="footref" href="#fn.2" role="doc-backlink">2</a></sup>. <code>recv()</code>, however, will <a href="#orge54cbda">block</a> until
+around 60 times per second<sup><a id="fnr.2" class="footref" href="#fn.2" role="doc-backlink">2</a></sup>. <code>recv()</code>, however, will <a href="#orgfc5adbb">block</a> until
 data comes in. So our game will <i>completely stop</i> until another
 computer sends us network data, taking our ability to run this loop at
 least 60 times a second completely out of our hands.
@@ -491,9 +491,9 @@ returned data or if none was available.
 </div>
 </div>
 
-<div id="outline-container-org7493319" class="outline-2">
-<h2 id="org7493319">Implementing this in go</h2>
-<div class="outline-text-2" id="text-org7493319">
+<div id="outline-container-org39831d2" class="outline-2">
+<h2 id="org39831d2">Implementing this in go</h2>
+<div class="outline-text-2" id="text-org39831d2">
 <p>
 Using Go to add nonblocking sockets is pretty straightforward. Here's
 a hypothetical <code>doNetRecv()</code> function, which can be safely called
@@ -501,26 +501,26 @@ every iteration of our update loop without locking the whole thing up:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-go"><span style="font-weight: bold;">func</span> <span style="font-weight: bold;">doNetRecv</span>() {
-        <span style="font-weight: bold; font-style: italic;">buffer</span> := <span style="font-weight: bold;">make</span>([]<span style="font-weight: bold; text-decoration: underline;">byte</span>, 4096)
-        <span style="font-weight: bold; font-style: italic;">n</span>, <span style="font-weight: bold; font-style: italic;">err</span> := syscall.<span style="font-weight: bold;">Read</span>(connFd, buffer)
-        <span style="font-weight: bold;">if</span> err != <span style="font-weight: bold; text-decoration: underline;">nil</span> {
-                <span style="font-weight: bold;">if</span> err == syscall.EAGAIN || err == syscall.EWOULDBLOCK {
-                        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">No data available. That's ok, just move on.</span>
-                        <span style="font-weight: bold;">return</span>
-                } <span style="font-weight: bold;">else</span> {
-                        <span style="font-weight: bold;">panic</span>(fmt.<span style="font-weight: bold;">Errorf</span>(<span style="font-style: italic;">"error: %v"</span>, err))
+<pre class="src src-go"><span style="color: #a020f0;">func</span> <span style="color: #0000ff;">doNetRecv</span>() {
+        <span style="color: #a0522d;">buffer</span> := <span style="color: #483d8b;">make</span>([]<span style="color: #228b22;">byte</span>, 4096)
+        <span style="color: #a0522d;">n</span>, <span style="color: #a0522d;">err</span> := syscall.<span style="color: #0000ff;">Read</span>(connFd, buffer)
+        <span style="color: #a020f0;">if</span> err != <span style="color: #008b8b;">nil</span> {
+                <span style="color: #a020f0;">if</span> err == syscall.EAGAIN || err == syscall.EWOULDBLOCK {
+                        <span style="color: #b22222;">// </span><span style="color: #b22222;">No data available. That's ok, just move on.</span>
+                        <span style="color: #a020f0;">return</span>
+                } <span style="color: #a020f0;">else</span> {
+                        <span style="color: #483d8b;">panic</span>(fmt.<span style="color: #0000ff;">Errorf</span>(<span style="color: #8b2252;">"error: %v"</span>, err))
                 }
         }
-        <span style="font-weight: bold; font-style: italic;">packet</span> := buffer[:n]
-        <span style="font-weight: bold;">processPacket</span>(packet)
+        <span style="color: #a0522d;">packet</span> := buffer[:n]
+        <span style="color: #0000ff;">processPacket</span>(packet)
 }
 </pre>
 </div>
 
 <p>
 Note that we have to open our sockets using system calls ("syscalls")
-instead of using the <code>net</code> package to achieve this. For the curious, <a href="#orgeb14d9d">Appendix A</a> has a table showing the relevant system calls and
+instead of using the <code>net</code> package to achieve this. For the curious, <a href="#org69fba76">Appendix A</a> has a table showing the relevant system calls and
 their POSIX counterparts. The important thing to note is that our
 socket is stored as an <code>int</code> and is read from/written to using
 <code>syscall.Read()</code> and <code>syscall.Write()</code>, rather than the usual
@@ -545,31 +545,31 @@ helpful for this:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-go"><span style="font-weight: bold;">select</span> {
-<span style="font-weight: bold;">case</span> &lt;-netSendTicker.C:
-        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">send data over the net, if enough time has elapsed.</span>
-        <span style="font-weight: bold;">doNetSend</span>()
-<span style="font-weight: bold;">case</span> &lt;-netRecvTicker.C:
-        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">try to receive data over the net, if enough time has</span>
-        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">elapsed.</span>
-        <span style="font-weight: bold;">doNetRecv</span>()
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">If it's not time to check anything, continue to the rest of the</span>
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">frame. Without this "default" condition, the select block will wait</span>
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">until one of the above two timers sends an event.</span>
-<span style="font-weight: bold;">default</span>:
+<pre class="src src-go"><span style="color: #a020f0;">select</span> {
+<span style="color: #a020f0;">case</span> &lt;-netSendTicker.C:
+        <span style="color: #b22222;">// </span><span style="color: #b22222;">send data over the net, if enough time has elapsed.</span>
+        <span style="color: #0000ff;">doNetSend</span>()
+<span style="color: #a020f0;">case</span> &lt;-netRecvTicker.C:
+        <span style="color: #b22222;">// </span><span style="color: #b22222;">try to receive data over the net, if enough time has</span>
+        <span style="color: #b22222;">// </span><span style="color: #b22222;">elapsed.</span>
+        <span style="color: #0000ff;">doNetRecv</span>()
+<span style="color: #b22222;">// </span><span style="color: #b22222;">If it's not time to check anything, continue to the rest of the</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">frame. Without this "default" condition, the select block will wait</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">until one of the above two timers sends an event.</span>
+<span style="color: #a020f0;">default</span>:
 }
 
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Do our usual update loop</span>
-<span style="font-weight: bold;">update</span>()
-<span style="font-weight: bold;">render</span>()
+<span style="color: #b22222;">// </span><span style="color: #b22222;">Do our usual update loop</span>
+<span style="color: #0000ff;">update</span>()
+<span style="color: #0000ff;">render</span>()
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org4219a7e" class="outline-2">
-<h2 id="org4219a7e">Another Way: Threads (Goroutines)</h2>
-<div class="outline-text-2" id="text-org4219a7e">
+<div id="outline-container-orge7c0141" class="outline-2">
+<h2 id="orge7c0141">Another Way: Threads (Goroutines)</h2>
+<div class="outline-text-2" id="text-orge7c0141">
 <p>
 The other way to get around blocking operations (besides making them
 not block anymore) is to devote a thread to the operation. This is
@@ -577,19 +577,19 @@ pretty easy with goroutines:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-go"><span style="font-weight: bold; font-style: italic;">conn</span> := <span style="font-weight: bold;">setUpConnection</span>()
+<pre class="src src-go"><span style="color: #a0522d;">conn</span> := <span style="color: #0000ff;">setUpConnection</span>()
 
-<span style="font-weight: bold;">go</span> <span style="font-weight: bold;">func</span>() {
-        <span style="font-weight: bold; font-style: italic;">n</span>, <span style="font-weight: bold; font-style: italic;">err</span> := conn.<span style="font-weight: bold;">Read</span>(buffer)
-        <span style="font-weight: bold;">if</span> err != <span style="font-weight: bold; text-decoration: underline;">nil</span> {
-                <span style="font-weight: bold;">panic</span>(err)
+<span style="color: #a020f0;">go</span> <span style="color: #a020f0;">func</span>() {
+        <span style="color: #a0522d;">n</span>, <span style="color: #a0522d;">err</span> := conn.<span style="color: #0000ff;">Read</span>(buffer)
+        <span style="color: #a020f0;">if</span> err != <span style="color: #008b8b;">nil</span> {
+                <span style="color: #483d8b;">panic</span>(err)
         }
-        <span style="font-weight: bold; font-style: italic;">packet</span> := buffer[:n]
-        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... still need to do something with packet so the rest of</span>
-        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">our game can use it ...</span>
+        <span style="color: #a0522d;">packet</span> := buffer[:n]
+        <span style="color: #b22222;">// </span><span style="color: #b22222;">... still need to do something with packet so the rest of</span>
+        <span style="color: #b22222;">// </span><span style="color: #b22222;">our game can use it ...</span>
 }()
 
-<span style="font-weight: bold;">beginMainLoop</span>(conn)
+<span style="color: #0000ff;">beginMainLoop</span>(conn)
 </pre>
 </div>
 
@@ -634,44 +634,44 @@ subordinate threads to dictate what work gets done.
 </div>
 </div>
 
-<div id="outline-container-org66cfde7" class="outline-2">
-<h2 id="org66cfde7">The Channel Overreach</h2>
-<div class="outline-text-2" id="text-org66cfde7">
+<div id="outline-container-org0127971" class="outline-2">
+<h2 id="org0127971">The Channel Overreach</h2>
+<div class="outline-text-2" id="text-org0127971">
 <p>
 Go channels are a natural choice to facilitate communication between
 goroutines, and that's exactly what I started out doing:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-go"><span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Before entering main loop...</span>
-<span style="font-weight: bold; font-style: italic;">buffersCount</span> := 10
-<span style="font-weight: bold; font-style: italic;">bufferChan</span> := <span style="font-weight: bold;">make</span>(<span style="font-weight: bold;">chan</span> []<span style="font-weight: bold; text-decoration: underline;">byte</span>, buffersCount)
-<span style="font-weight: bold; font-style: italic;">inMsgChan</span> := <span style="font-weight: bold;">make</span>(<span style="font-weight: bold;">chan</span> []<span style="font-weight: bold; text-decoration: underline;">WorldMessage</span>, buffersCount)
+<pre class="src src-go"><span style="color: #b22222;">// </span><span style="color: #b22222;">Before entering main loop...</span>
+<span style="color: #a0522d;">buffersCount</span> := 10
+<span style="color: #a0522d;">bufferChan</span> := <span style="color: #483d8b;">make</span>(<span style="color: #a020f0;">chan</span> []<span style="color: #228b22;">byte</span>, buffersCount)
+<span style="color: #a0522d;">inMsgChan</span> := <span style="color: #483d8b;">make</span>(<span style="color: #a020f0;">chan</span> []<span style="color: #228b22;">WorldMessage</span>, buffersCount)
 
-<span style="font-weight: bold;">for</span> <span style="font-weight: bold;">range</span> buffersCount {
-        bufferChan &lt;- <span style="font-weight: bold;">make</span>([]<span style="font-weight: bold; text-decoration: underline;">byte</span>, 4096)
+<span style="color: #a020f0;">for</span> <span style="color: #a020f0;">range</span> buffersCount {
+        bufferChan &lt;- <span style="color: #483d8b;">make</span>([]<span style="color: #228b22;">byte</span>, 4096)
 }
 
-<span style="font-weight: bold;">go</span> <span style="font-weight: bold;">func</span>() {
-        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Read buffers forever</span>
-        <span style="font-weight: bold;">for</span> <span style="font-weight: bold; font-style: italic;">buffer</span> := <span style="font-weight: bold;">range</span> bufferChan {
-                <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Expand buffer to its maximum capacity,</span>
-                <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">undoing the truncated done by buffer[:n].</span>
-                buffer = buffer[:<span style="font-weight: bold;">cap</span>(buffer)]
-                <span style="font-weight: bold; font-style: italic;">n</span>, <span style="font-weight: bold; font-style: italic;">err</span> := conn.<span style="font-weight: bold;">Read</span>(buffer)
-                <span style="font-weight: bold;">if</span> err != <span style="font-weight: bold; text-decoration: underline;">nil</span> {
-                        <span style="font-weight: bold;">panic</span>(err)
+<span style="color: #a020f0;">go</span> <span style="color: #a020f0;">func</span>() {
+        <span style="color: #b22222;">// </span><span style="color: #b22222;">Read buffers forever</span>
+        <span style="color: #a020f0;">for</span> <span style="color: #a0522d;">buffer</span> := <span style="color: #a020f0;">range</span> bufferChan {
+                <span style="color: #b22222;">// </span><span style="color: #b22222;">Expand buffer to its maximum capacity,</span>
+                <span style="color: #b22222;">// </span><span style="color: #b22222;">undoing the truncated done by buffer[:n].</span>
+                buffer = buffer[:<span style="color: #483d8b;">cap</span>(buffer)]
+                <span style="color: #a0522d;">n</span>, <span style="color: #a0522d;">err</span> := conn.<span style="color: #0000ff;">Read</span>(buffer)
+                <span style="color: #a020f0;">if</span> err != <span style="color: #008b8b;">nil</span> {
+                        <span style="color: #483d8b;">panic</span>(err)
                 }
                 inMsgChan &lt;- buffer[:n]
         }
 }
 
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... in main loop ...</span>
-<span style="font-weight: bold;">select</span> {
-<span style="font-weight: bold;">case</span> buffer&lt;-inMsgChan:
-        <span style="font-weight: bold;">readPacketIntoWorld</span>(world, buffer)
+<span style="color: #b22222;">// </span><span style="color: #b22222;">... in main loop ...</span>
+<span style="color: #a020f0;">select</span> {
+<span style="color: #a020f0;">case</span> buffer&lt;-inMsgChan:
+        <span style="color: #0000ff;">readPacketIntoWorld</span>(world, buffer)
         bufferChan &lt;- buffer
-<span style="font-weight: bold;">default</span>:
+<span style="color: #a020f0;">default</span>:
 }
 </pre>
 </div>
@@ -684,7 +684,7 @@ processes the data, the buffer goes back in the queue.
 </p>
 
 
-<div id="orgab51618" class="figure">
+<div id="org0d64376" class="figure">
 <p><img src="./Goroutine_netcode.png" alt="Goroutine_netcode.png" width="75%" />
 </p>
 </div>
@@ -718,7 +718,7 @@ the main thread to consume and free up the buffers it has written to.
 </p>
 
 
-<div id="orga68d48c" class="figure">
+<div id="org214dffc" class="figure">
 <p><img src="./Goroutine_stalled_read.png" alt="Goroutine_stalled_read.png" width="75%" />
 </p>
 </div>
@@ -740,9 +740,9 @@ back to basics and use one of multithreadings primitive types.
 </div>
 </div>
 
-<div id="outline-container-org7cc73a0" class="outline-2">
-<h2 id="org7cc73a0">Introduction to Multithreading: Mutexes</h2>
-<div class="outline-text-2" id="text-org7cc73a0">
+<div id="outline-container-orgba921b1" class="outline-2">
+<h2 id="orgba921b1">Introduction to Multithreading: Mutexes</h2>
+<div class="outline-text-2" id="text-orgba921b1">
 <p>
 When multithreading, the most commonly used primitive synchronization
 object is the mutex (from "MUTual EXclusion", much like how pixel is
@@ -755,13 +755,13 @@ As a quick example, take the following C++ code:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-c++"><span style="font-weight: bold; text-decoration: underline;">void</span> <span style="font-weight: bold;">add</span>(<span style="font-weight: bold; text-decoration: underline;">int</span>* <span style="font-weight: bold; font-style: italic;">p</span>, <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">delta</span>)
+<pre class="src src-c++"><span style="color: #228b22;">void</span> <span style="color: #0000ff;">add</span>(<span style="color: #228b22;">int</span>* <span style="color: #a0522d;">p</span>, <span style="color: #228b22;">int</span> <span style="color: #a0522d;">delta</span>)
 {
-      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Load the value of n</span><span style="font-weight: bold; font-style: italic;"> */</span>
-      <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">n</span> = *p;
-      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Calculate the new value</span><span style="font-weight: bold; font-style: italic;"> */</span>
-      <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">sum</span> = n + delta;
-      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Store the new value</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      <span style="color: #b22222;">/* </span><span style="color: #b22222;">Load the value of n</span><span style="color: #b22222;"> */</span>
+      <span style="color: #228b22;">int</span> <span style="color: #a0522d;">n</span> = *p;
+      <span style="color: #b22222;">/* </span><span style="color: #b22222;">Calculate the new value</span><span style="color: #b22222;"> */</span>
+      <span style="color: #228b22;">int</span> <span style="color: #a0522d;">sum</span> = n + delta;
+      <span style="color: #b22222;">/* </span><span style="color: #b22222;">Store the new value</span><span style="color: #b22222;"> */</span>
       *p = sum;
 }
 </pre>
@@ -841,21 +841,21 @@ For the sake of example, let's see what happens if we use a mutex:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-c++"><span style="font-weight: bold; text-decoration: underline;">std</span>::<span style="font-weight: bold; text-decoration: underline;">mutex</span> <span style="font-weight: bold; font-style: italic;">p_lock</span>;
+<pre class="src src-c++"><span style="color: #008b8b;">std</span>::<span style="color: #228b22;">mutex</span> <span style="color: #a0522d;">p_lock</span>;
 
-<span style="font-weight: bold; text-decoration: underline;">void</span> <span style="font-weight: bold;">add</span>(<span style="font-weight: bold; text-decoration: underline;">int</span>* <span style="font-weight: bold; font-style: italic;">p</span>, <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">delta</span>)
+<span style="color: #228b22;">void</span> <span style="color: #0000ff;">add</span>(<span style="color: #228b22;">int</span>* <span style="color: #a0522d;">p</span>, <span style="color: #228b22;">int</span> <span style="color: #a0522d;">delta</span>)
 {
-      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Lock the mutex. Threads that try to lock() a locked mutex will</span>
-<span style="font-weight: bold; font-style: italic;">         block until the mutex is freed.</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      <span style="color: #b22222;">/* </span><span style="color: #b22222;">Lock the mutex. Threads that try to lock() a locked mutex will</span>
+<span style="color: #b22222;">         block until the mutex is freed.</span><span style="color: #b22222;"> */</span>
       p_lock.lock();
-      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Load the value of n</span><span style="font-weight: bold; font-style: italic;"> */</span>
-      <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">n</span> = *p;
-      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Calculate the new value</span><span style="font-weight: bold; font-style: italic;"> */</span>
-      <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">sum</span> = n + delta;
-      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Store the new value</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      <span style="color: #b22222;">/* </span><span style="color: #b22222;">Load the value of n</span><span style="color: #b22222;"> */</span>
+      <span style="color: #228b22;">int</span> <span style="color: #a0522d;">n</span> = *p;
+      <span style="color: #b22222;">/* </span><span style="color: #b22222;">Calculate the new value</span><span style="color: #b22222;"> */</span>
+      <span style="color: #228b22;">int</span> <span style="color: #a0522d;">sum</span> = n + delta;
+      <span style="color: #b22222;">/* </span><span style="color: #b22222;">Store the new value</span><span style="color: #b22222;"> */</span>
       *p = sum;
-      <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Unlock the mutex, allowing other threads to operate on this</span>
-<span style="font-weight: bold; font-style: italic;">         data.</span><span style="font-weight: bold; font-style: italic;"> */</span>
+      <span style="color: #b22222;">/* </span><span style="color: #b22222;">Unlock the mutex, allowing other threads to operate on this</span>
+<span style="color: #b22222;">         data.</span><span style="color: #b22222;"> */</span>
       p_lock.unlock();
 }
 </pre>
@@ -976,9 +976,9 @@ no faster than a single-threaded program.
 </div>
 </div>
 
-<div id="outline-container-orgab2ac20" class="outline-2">
-<h2 id="orgab2ac20">Mutexes and LatestData</h2>
-<div class="outline-text-2" id="text-orgab2ac20">
+<div id="outline-container-org2f46a39" class="outline-2">
+<h2 id="org2f46a39">Mutexes and LatestData</h2>
+<div class="outline-text-2" id="text-org2f46a39">
 <p>
 Now we have the tools we need to improve our program by moving away
 from channels. To recap, we have two threads that want to access the
@@ -1017,36 +1017,36 @@ Here's the solution I came up with:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-go"><span style="font-weight: bold;">type</span> <span style="font-weight: bold; text-decoration: underline;">LatestData</span> <span style="font-weight: bold;">struct</span> {
-        hasChanged <span style="font-weight: bold; text-decoration: underline;">bool</span>
-        data <span style="font-weight: bold; text-decoration: underline;">WorldMessage</span>
-        l <span style="font-weight: bold; text-decoration: underline;">sync.Mutex</span>
+<pre class="src src-go"><span style="color: #a020f0;">type</span> <span style="color: #228b22;">LatestData</span> <span style="color: #a020f0;">struct</span> {
+        hasChanged <span style="color: #228b22;">bool</span>
+        data <span style="color: #228b22;">WorldMessage</span>
+        l <span style="color: #228b22;">sync.Mutex</span>
 }
 
-<span style="font-weight: bold;">func</span> (<span style="font-weight: bold; font-style: italic;">m</span> *<span style="font-weight: bold; text-decoration: underline;">LatestData</span>) <span style="font-weight: bold;">Store</span>(<span style="font-weight: bold; font-style: italic;">msg</span> *<span style="font-weight: bold; text-decoration: underline;">WorldMessage</span>) {
-        m.l.<span style="font-weight: bold;">Lock</span>()
-        <span style="font-weight: bold;">defer</span> m.l.<span style="font-weight: bold;">Unlock</span>()
+<span style="color: #a020f0;">func</span> (<span style="color: #a0522d;">m</span> *<span style="color: #228b22;">LatestData</span>) <span style="color: #0000ff;">Store</span>(<span style="color: #a0522d;">msg</span> *<span style="color: #228b22;">WorldMessage</span>) {
+        m.l.<span style="color: #0000ff;">Lock</span>()
+        <span style="color: #a020f0;">defer</span> m.l.<span style="color: #0000ff;">Unlock</span>()
 
         m.data = *msg
 
-        m.hasChanged = <span style="font-weight: bold; text-decoration: underline;">true</span>
+        m.hasChanged = <span style="color: #008b8b;">true</span>
 }
 
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">If m has changed since the last Load, loads the current value of m</span>
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">into msg and returns true. Otherwise, does nothing and returns</span>
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">false.</span>
-<span style="font-weight: bold;">func</span> (<span style="font-weight: bold; font-style: italic;">m</span> *<span style="font-weight: bold; text-decoration: underline;">LatestData</span>) <span style="font-weight: bold;">Load</span>(<span style="font-weight: bold; font-style: italic;">msg</span> *<span style="font-weight: bold; text-decoration: underline;">WorldMessage</span>) <span style="font-weight: bold; text-decoration: underline;">bool</span> {
-        m.l.<span style="font-weight: bold;">Lock</span>()
-        <span style="font-weight: bold;">defer</span> m.l.<span style="font-weight: bold;">Unlock</span>()
+<span style="color: #b22222;">// </span><span style="color: #b22222;">If m has changed since the last Load, loads the current value of m</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">into msg and returns true. Otherwise, does nothing and returns</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">false.</span>
+<span style="color: #a020f0;">func</span> (<span style="color: #a0522d;">m</span> *<span style="color: #228b22;">LatestData</span>) <span style="color: #0000ff;">Load</span>(<span style="color: #a0522d;">msg</span> *<span style="color: #228b22;">WorldMessage</span>) <span style="color: #228b22;">bool</span> {
+        m.l.<span style="color: #0000ff;">Lock</span>()
+        <span style="color: #a020f0;">defer</span> m.l.<span style="color: #0000ff;">Unlock</span>()
 
-        <span style="font-weight: bold;">if</span> !m.hasChanged {
-                <span style="font-weight: bold;">return</span> <span style="font-weight: bold; text-decoration: underline;">false</span>
+        <span style="color: #a020f0;">if</span> !m.hasChanged {
+                <span style="color: #a020f0;">return</span> <span style="color: #008b8b;">false</span>
         }
 
         *msg = m.data
-        m.hasChanged = <span style="font-weight: bold; text-decoration: underline;">false</span>
+        m.hasChanged = <span style="color: #008b8b;">false</span>
 
-        <span style="font-weight: bold;">return</span> <span style="font-weight: bold; text-decoration: underline;">true</span>
+        <span style="color: #a020f0;">return</span> <span style="color: #008b8b;">true</span>
 }
 </pre>
 </div>
@@ -1056,29 +1056,29 @@ Then we integrate it into our game like so:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-go"><span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Before entering main loop</span>
-<span style="font-weight: bold; font-style: italic;">latestMessage</span> := &amp;<span style="font-weight: bold; text-decoration: underline;">LatestData</span>{}
+<pre class="src src-go"><span style="color: #b22222;">// </span><span style="color: #b22222;">Before entering main loop</span>
+<span style="color: #a0522d;">latestMessage</span> := &amp;<span style="color: #228b22;">LatestData</span>{}
 
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Read thread</span>
-<span style="font-weight: bold;">go</span> <span style="font-weight: bold;">func</span>() {
-        <span style="font-weight: bold; font-style: italic;">buffer</span> := <span style="font-weight: bold;">make</span>([]<span style="font-weight: bold; text-decoration: underline;">byte</span>, 4096)
-        <span style="font-weight: bold;">for</span> {
-                <span style="font-weight: bold; font-style: italic;">n</span>, <span style="font-weight: bold; font-style: italic;">err</span> := conn.<span style="font-weight: bold;">Read</span>(buffer)
-                <span style="font-weight: bold;">if</span> err != <span style="font-weight: bold; text-decoration: underline;">nil</span> {
-                        <span style="font-weight: bold;">panic</span>(err)
+<span style="color: #b22222;">// </span><span style="color: #b22222;">Read thread</span>
+<span style="color: #a020f0;">go</span> <span style="color: #a020f0;">func</span>() {
+        <span style="color: #a0522d;">buffer</span> := <span style="color: #483d8b;">make</span>([]<span style="color: #228b22;">byte</span>, 4096)
+        <span style="color: #a020f0;">for</span> {
+                <span style="color: #a0522d;">n</span>, <span style="color: #a0522d;">err</span> := conn.<span style="color: #0000ff;">Read</span>(buffer)
+                <span style="color: #a020f0;">if</span> err != <span style="color: #008b8b;">nil</span> {
+                        <span style="color: #483d8b;">panic</span>(err)
                 }
-                <span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">message</span> <span style="font-weight: bold; text-decoration: underline;">MessageData</span>
-                message = <span style="font-weight: bold;">parseMessage</span>(buffer)
-                latestMessage.<span style="font-weight: bold;">Store</span>(message)
+                <span style="color: #a020f0;">var</span> <span style="color: #a0522d;">message</span> <span style="color: #228b22;">MessageData</span>
+                message = <span style="color: #0000ff;">parseMessage</span>(buffer)
+                latestMessage.<span style="color: #0000ff;">Store</span>(message)
         }
 }
 
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... in update loop ...</span>
-<span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">message</span> <span style="font-weight: bold; text-decoration: underline;">MessageData</span>
-<span style="font-weight: bold;">if</span> latestMessage.<span style="font-weight: bold;">Load</span>(&amp;message) {
-        <span style="font-weight: bold;">setWorldStateToMessageData</span>(message)
+<span style="color: #b22222;">// </span><span style="color: #b22222;">... in update loop ...</span>
+<span style="color: #a020f0;">var</span> <span style="color: #a0522d;">message</span> <span style="color: #228b22;">MessageData</span>
+<span style="color: #a020f0;">if</span> latestMessage.<span style="color: #0000ff;">Load</span>(&amp;message) {
+        <span style="color: #0000ff;">setWorldStateToMessageData</span>(message)
 }
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">... rest of update loop</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">... rest of update loop</span>
 </pre>
 </div>
 
@@ -1093,9 +1093,9 @@ instead of using mutexes directly.
 </div>
 </div>
 
-<div id="outline-container-orgb893ef4" class="outline-2">
-<h2 id="orgb893ef4">Conclusion: A Light Touch Is Often Best</h2>
-<div class="outline-text-2" id="text-orgb893ef4">
+<div id="outline-container-orgabbe79d" class="outline-2">
+<h2 id="orgabbe79d">Conclusion: A Light Touch Is Often Best</h2>
+<div class="outline-text-2" id="text-orgabbe79d">
 <p>
 Besides providing a (hopefully approachable) introduction to
 multithreading, game loops, and how they can interact, there's a more
@@ -1130,9 +1130,9 @@ perhaps the most crucial of all for members of my profession.
 </div>
 </div>
 
-<div id="outline-container-orgeb14d9d" class="outline-2">
-<h2 id="orgeb14d9d">Appendix A: Table of Relevant System Calls</h2>
-<div class="outline-text-2" id="text-orgeb14d9d">
+<div id="outline-container-org69fba76" class="outline-2">
+<h2 id="org69fba76">Appendix A: Table of Relevant System Calls</h2>
+<div class="outline-text-2" id="text-org69fba76">
 <p>
 Posix functions are written in the usual man page format &#x2013; socket(2)
 means "a function named socket, which is found on section 2 of the man
@@ -1245,9 +1245,9 @@ setting in a single line.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-c"><span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">flags</span> = fcntl(fd, F_GETFL, 0);
+<pre class="src src-c"><span style="color: #228b22;">int</span> <span style="color: #a0522d;">flags</span> = fcntl(fd, F_GETFL, 0);
 flags = blocking ? (flags &amp; ~O_NONBLOCK) : (flags | O_NONBLOCK);
-<span style="font-weight: bold;">fcntl</span>(fd, F_SETFL, flags);
+<span style="color: #0000ff;">fcntl</span>(fd, F_SETFL, flags);
 </pre>
 </div></div></div>
 
@@ -1260,18 +1260,18 @@ lock for <code>buffer</code>. For example:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-go"><span style="font-weight: bold;">type</span> <span style="font-weight: bold; text-decoration: underline;">MessageData</span> <span style="font-weight: bold;">struct</span> {
-        header <span style="font-weight: bold; text-decoration: underline;">int32</span>
-        body []<span style="font-weight: bold; text-decoration: underline;">byte</span>
+<pre class="src src-go"><span style="color: #a020f0;">type</span> <span style="color: #228b22;">MessageData</span> <span style="color: #a020f0;">struct</span> {
+        header <span style="color: #228b22;">int32</span>
+        body []<span style="color: #228b22;">byte</span>
 }
 
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Doing this makes body share the underlying array of buffer --</span>
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">writes to buffer will change the data read from body</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">Doing this makes body share the underlying array of buffer --</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">writes to buffer will change the data read from body</span>
 messageData.body = buffer[headIndex:]
 
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Instead, if we do this, we can keep the data in buffer and in</span>
-<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">messageData independent of each other.</span>
-<span style="font-weight: bold;">copy</span>(messageData.body, buffer[headIndex:])
+<span style="color: #b22222;">// </span><span style="color: #b22222;">Instead, if we do this, we can keep the data in buffer and in</span>
+<span style="color: #b22222;">// </span><span style="color: #b22222;">messageData independent of each other.</span>
+<span style="color: #483d8b;">copy</span>(messageData.body, buffer[headIndex:])
 </pre>
 </div></div></div>
 
@@ -1291,7 +1291,7 @@ me!
 </div>
 </div></div>
 <div id="postamble" class="status">
-<p class="date">Created: 2024-06-02 Sun 11:19</p>
+<p class="date">Created: 2024-06-02 Sun 11:29</p>
 </div>
 </body>
 </html>
