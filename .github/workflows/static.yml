@@ -34,7 +34,7 @@ jobs:
       - name: Setup Emacs
         uses: jcs090218/setup-emacs@master
         with:
-          version: 24.5
+          version: 29.3
       - name: Build
         run: emacs -Q --batch -l publish-script.el
       - name: Setup Pages
