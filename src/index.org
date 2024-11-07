@@ -1,9 +1,0 @@
-#+TITLE: Scott's Site
-
-* Articles
-- [[./go-networked-game.org][Networking a Game in Go]]
-
-* Lecture Notes
-** GPR-350
-- [[./phys-week2.org][Week 2 Notes]]
-- [[./phys-week3.org][Week 3 Notes]]
