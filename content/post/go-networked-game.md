@@ -1,6 +1,6 @@
 ---
 title: Writing a Networked Game in Go
-draft: true
+date: 2024-07-10
 ---
 
 # Introduction and Motivation
