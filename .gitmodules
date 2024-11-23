@@ -1,0 +1,12 @@
+[submodule "themes/ananke"]
+	path = themes/ananke
+	url = https://github.com/theNewDynamic/gohugo-theme-ananke
+[submodule "themes/hugo-kiera"]
+	path = themes/hugo-kiera
+	url = https://github.com/funkydan2/hugo-kiera.git
+[submodule "themes/typo"]
+	path = themes/typo
+	url = https://github.com/tomfran/typo.git
+[submodule "themes/kiera"]
+	path = themes/kiera
+	url = https://github.com/funkydan2/hugo-kiera.git

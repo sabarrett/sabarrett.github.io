@@ -1,0 +1,30 @@
+disablePathToLower = true
+languageCode = "en-us"
+title = "Scott's Site"
+theme = 'typo'
+
+# Collection to display on home
+[params]
+theme = 'light'
+homeCollectionTitle = 'Posts'
+homeCollection = 'post'
+
+# Lists parameters
+paginationSize = 100
+listSummaries = false
+listDateFormat = '2 Jan 2006'
+
+math = true
+
+# Main menu pages
+[[params.menu]]
+name = "home"
+url = "/"
+
+[[params.menu]]
+name = "posts"
+url = "/post"
+
+[markup]
+[markup.highlight]
+style = 'catppuccin-latte'
