@@ -22,6 +22,14 @@ I like making course materials for college-level classes. This is
 lucky for me, because my employer pays me to do just that. In the
 future, I plan to publish the course materials I've made.
 
+## Things I've Helped Make That Aren't Games
+* [What's The Gist,
+  Scientist?](https://open.spotify.com/episode/0eGgXLGyKrQxZx0hrECQec?si=2903b2ea92d9448d)
+  -- An episode of a podcast where I talk about my philosophy on game
+  design and game programming.
+* [YABAI!](https://open.spotify.com/artist/4oFL7137QewhXVfJxBKrMd?si=c1nGvGgkSLWFeUrPFwt5Bg)
+  -- I play the drums in this band.
+
 ## Games I've Worked On Directly
 * Far Cry 5
 * Transference
@@ -31,6 +39,9 @@ future, I plan to publish the course materials I've made.
 
 ## Games I Played a Small Part In Helping Come to Exist
 * [Wayward Colony](https://kinokogames.itch.io/wayward-colony) -- I
-  consulted on game design for this.
+  consulted on game design.
 * [Barn Burning](https://kinokogames.itch.io/barn-burning) -- I wrote
-  a very small RPG Maker plugin for this.
+  a very small RPG Maker plugin.
+* [The Black
+  Cartridge](https://kinokogames.itch.io/the-black-cartridge) -- I
+  consulted on game design and did playtesting.
