@@ -25,6 +25,10 @@ url = "/"
 name = "posts"
 url = "/post"
 
+[[params.menu]]
+name = "about"
+url = "/about"
+
 [markup]
 [markup.highlight]
 style = 'catppuccin-latte'
