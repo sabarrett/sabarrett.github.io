@@ -32,7 +32,7 @@ games to this day.
 ---
 
 Just kidding! HMs caused some serious problems, and fans' complaints
-about HMs grew steadily louder over time. By looking at how HMs
+about HMs grew steadily louder over time. If we look at how HMs
 changed over time, it's evident that Game Freak either capitulated to
 or agreed with the fans. At first, new HMs were being added every
 generation, but the compounding problems had clearly reached a
