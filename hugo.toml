@@ -30,5 +30,8 @@ name = "about"
 url = "/about"
 
 [markup]
+[markup.goldmark]
+[markup.goldmark.renderer]
+unsafe = true
 [markup.highlight]
 style = 'catppuccin-latte'
